@@ -22,6 +22,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 def replace_spdx(line=None) -> Optional[str]:
     return line and line.replace('SPDX-License', 'IGNORE_LICENSE') or None
 
+get_file_name = lambda p: p.split(os.path.sep)[-1]
 
 class FlattenError(ValueError):
     pass
@@ -46,7 +47,8 @@ def flatten(file_path: str, seen: Optional[Set[str]] = None, seen_meta=None, inc
     '''
     seen_meta = seen_meta or set()
     seen = seen or set()
-    if file_path in seen:
+    file_name = get_file_name(os.path.abspath(file_path))
+    if file_name in seen:
         return []
 
     if not os.path.isfile(file_path):
@@ -55,10 +57,11 @@ def flatten(file_path: str, seen: Optional[Set[str]] = None, seen_meta=None, inc
     if not file_path.lower().endswith('.sol'):
         raise FlattenError(f'Only solidity file is allowed: {file_path}')
     include_paths.append(abspath(os.path.join(Path(file_path).parent)))
-    seen.add(file_path)
+    # NOTE here we assume same file name at different places on the file system represent the same file
+    seen.add(file_name)
     content = []
     print ("file path ", file_path)
-    print ("include_paths ", include_paths)
+    # print ("include_paths ", include_paths)
     for linenum, line in enumerate(open(file_path, 'r')):
         segs = line.strip().split(maxsplit=1)
         if segs and segs[0] == 'import':
