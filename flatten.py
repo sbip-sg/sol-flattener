@@ -66,7 +66,10 @@ def flatten(file_path: str, seen: Optional[Set[str]] = None, seen_meta=None, inc
         segs = line.strip().split(maxsplit=1)
         if segs and segs[0] == 'import':
             quote = segs[1][0]
-            path = segs[1][:-1].strip(quote)
+            if '{' in segs[1]:
+                path = line.split('"')[-2].strip('"')
+            else:
+                path = segs[1][:-1].strip(quote)
             found_import = False
             if os.path.isfile(path):
                 found_import = True
